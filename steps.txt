@@ -1,0 +1,15 @@
+1. create virtual enviroment(venv) 
+    python -m venv venv
+
+2. create requirement.txt      #add required libraries
+
+3. now activate the virtual enviroment (venv)
+    for Powershell = . venv\Scripts\activate  #enter it'll activate the venv
+    for bash = . venv/Scripts/activate 
+
+4. now install the requirement.txt
+    pip install -r requirement.txt     #it will install all the libraries, that listed inside
+
+5. after installing the requirement.txt now update it 
+    pip freeze > requirement.txt    # use bash for good experience
+
