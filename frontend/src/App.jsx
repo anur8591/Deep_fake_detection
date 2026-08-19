@@ -5,7 +5,6 @@ import {
   Target,
   BrainCircuit,
   Zap,
-  Github,
 } from "lucide-react";
 
 import Navbar from "./components/Navbar";
@@ -37,7 +36,7 @@ function App() {
 
         {/* ================= HERO ================= */}
 
-        <section className="hero-section">
+        <section className="hero-section" id="dashboard">
 
           <div className="hero-content">
 
@@ -61,6 +60,7 @@ function App() {
             <div className="hero-features">
 
               <div className="hero-feature">
+
                 <div className="feature-icon">
                   <BrainCircuit size={19} />
                 </div>
@@ -69,9 +69,11 @@ function App() {
                   <strong>AI-Powered</strong>
                   <span>Deep Learning</span>
                 </div>
+
               </div>
 
               <div className="hero-feature">
+
                 <div className="feature-icon">
                   <Video size={19} />
                 </div>
@@ -80,9 +82,11 @@ function App() {
                   <strong>Frame Analysis</strong>
                   <span>Smart Processing</span>
                 </div>
+
               </div>
 
               <div className="hero-feature">
+
                 <div className="feature-icon">
                   <Target size={19} />
                 </div>
@@ -91,17 +95,19 @@ function App() {
                   <strong>High Accuracy</strong>
                   <span>Reliable Results</span>
                 </div>
+
               </div>
 
             </div>
 
           </div>
 
+
           <div className="hero-image-wrapper">
 
             <img
               src={heroImage}
-              alt="AI deepfake detection visualization"
+              alt="AI deepfake detection"
             />
 
             <div className="hero-status">
@@ -117,6 +123,8 @@ function App() {
         {/* ================= ANALYSIS ================= */}
 
         <section className="analysis-layout">
+
+          {/* UPLOAD */}
 
           <div className="analysis-card upload-card">
 
@@ -140,6 +148,8 @@ function App() {
           </div>
 
 
+          {/* RESULT */}
+
           <div className="analysis-card result-wrapper">
 
             <div className="card-title">
@@ -154,8 +164,11 @@ function App() {
             </div>
 
             {showResult ? (
+
               <ResultCard />
+
             ) : (
+
               <div className="empty-result">
 
                 <div className="empty-icon">
@@ -166,16 +179,19 @@ function App() {
 
                 <p>
                   Upload a video and click{" "}
-                  <strong>Analyze Video</strong> to
-                  see the detection result.
+                  <strong>Analyze Video</strong> to see
+                  the detection result.
                 </p>
 
                 <div className="empty-placeholder">
                   <span>REAL / FAKE</span>
-                  <small>Waiting for video analysis</small>
+                  <small>
+                    Waiting for video analysis
+                  </small>
                 </div>
 
               </div>
+
             )}
 
           </div>
@@ -212,7 +228,9 @@ function App() {
               description="Upload video"
             />
 
-            <div className="pipeline-arrow">→</div>
+            <div className="pipeline-arrow">
+              →
+            </div>
 
             <PipelineStep
               number="02"
@@ -221,7 +239,9 @@ function App() {
               description="Video converted into frames"
             />
 
-            <div className="pipeline-arrow">→</div>
+            <div className="pipeline-arrow">
+              →
+            </div>
 
             <PipelineStep
               number="03"
@@ -230,7 +250,9 @@ function App() {
               description="Resize and normalize"
             />
 
-            <div className="pipeline-arrow">→</div>
+            <div className="pipeline-arrow">
+              →
+            </div>
 
             <PipelineStep
               number="04"
@@ -239,7 +261,9 @@ function App() {
               description="Deep learning analysis"
             />
 
-            <div className="pipeline-arrow">→</div>
+            <div className="pipeline-arrow">
+              →
+            </div>
 
             <PipelineStep
               number="05"
@@ -269,6 +293,7 @@ function App() {
 
           </div>
 
+
           <div className="about-content">
 
             <div className="about-title">
@@ -293,6 +318,7 @@ function App() {
               to determine whether the content is real or
               artificially manipulated.
             </p>
+
 
             <div className="about-features">
 
@@ -326,19 +352,18 @@ function App() {
         <footer>
 
           <div className="footer-brand">
-
             <Shield size={20} />
-
             <span>DeepGuard</span>
-
           </div>
 
           <p>
             AI-powered Deepfake Detection System
           </p>
 
-          <a href="#" className="github-link">
-            <Github size={16} />
+          <a
+            href="#"
+            className="github-link"
+          >
             GitHub
           </a>
 
@@ -351,7 +376,7 @@ function App() {
 }
 
 
-/* ================= COMPONENTS ================= */
+/* ================= PIPELINE COMPONENT ================= */
 
 function PipelineStep({
   number,
@@ -378,6 +403,8 @@ function PipelineStep({
   );
 }
 
+
+/* ================= ABOUT COMPONENT ================= */
 
 function AboutFeature({
   icon,

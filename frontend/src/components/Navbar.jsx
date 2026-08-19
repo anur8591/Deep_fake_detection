@@ -1,10 +1,6 @@
-import {
-  Shield,
-  Github,
-} from "lucide-react";
+import { Shield } from "lucide-react";
 
 function Navbar() {
-
   return (
     <nav className="navbar">
 
@@ -46,7 +42,6 @@ function Navbar() {
         href="#"
         className="github-button"
       >
-        <Github size={17} />
         GitHub
       </a>
 
