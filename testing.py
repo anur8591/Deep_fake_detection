@@ -70,3 +70,26 @@ def health_check():
     return {
         "status": "healthy"
     }
+
+
+import cv2
+import numpy as np
+
+
+IMG_SIZE = 224
+
+
+def preprocess_frame(frame):
+    # Resize frame
+    frame = cv2.resize(frame, (IMG_SIZE, IMG_SIZE))
+
+    # OpenCV uses BGR, convert to RGB
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+    # Convert pixel values from 0-255 to 0-1
+    frame = frame.astype(np.float32) / 255.0
+
+    # Add batch dimension
+    frame = np.expand_dims(frame, axis=0)
+
+    return frame
