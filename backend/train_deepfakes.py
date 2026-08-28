@@ -1,9 +1,9 @@
 import cv2
 import random
 from pathlib import Path
-
 import numpy as np
 import tensorflow as tf
+
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import (
     Conv2D,
@@ -12,7 +12,8 @@ from tensorflow.keras.layers import (
     Dense,
     Dropout
 )
-
+from tensorflow.keras.utils import Sequence
+from tensorflow.keras.callbacks import EarlyStopping 
 
 # PATHS
 
@@ -28,12 +29,12 @@ MODEL_PATH = MODEL_DIR / "deepfakes.keras"
 
 IMG_SIZE = 224
 BATCH_SIZE = 16
-EPOCHS = 5
+EPOCHS = 20 
 FRAME_INTERVAL = 5
-VALIDATION_SPLIT = 0.2
+VALIDATION_SPLIT = 0.20
 RANDOM_SEED = 42
 
-# GET VIDEO FILES
+# FIND VIDEOS
 
 def get_video_files(folder):
     extensions = {
@@ -44,43 +45,106 @@ def get_video_files(folder):
     }
 
     videos = []
-
     for file in folder.rglob("*"):
-
         if file.is_file() and file.suffix.lower() in extensions:
             videos.append(file)
-
     return videos
 
 # SPLIT VIDEOS
 
 def split_videos(videos):
-    random.seed(RANDOM_SEED)
     videos = videos.copy()
     random.shuffle(videos)
-    validation_count = int(len(videos) * VALIDATION_SPLIT)
+    validation_count = int(
+        len(videos) * VALIDATION_SPLIT
+    )
     validation_videos = videos[:validation_count]
     training_videos = videos[validation_count:]
     return training_videos, validation_videos
 
-# READ FRAMES FROM VIDEOS
+# GET FRAME POSITIONS
 
-def frame_generator(videos, label):
-    for video_path in videos:
-        capture = cv2.VideoCapture(str(video_path))
-        if not capture.isOpened():
-            print(f"Could not open: {video_path}")
-            continue
-        frame_number = 0
-        while True:
+def get_frame_positions(video_path):
+    capture = cv2.VideoCapture(str(video_path))
+    if not capture.isOpened():
+        return []
+    total_frames = int(
+        capture.get(cv2.CAP_PROP_FRAME_COUNT)
+    )
+    capture.release()
+    positions = list(
+        range(
+            0,
+            total_frames,
+            FRAME_INTERVAL
+        )
+    )
+    return positions
+
+# CREATE FRAME INDEX
+
+def create_frame_index(videos):
+    frame_index = []
+    for video_path, label in videos:
+        positions = get_frame_positions(video_path)
+        for position in positions:
+            frame_index.append(
+                (
+                    video_path,
+                    position,
+                    label
+                )
+            )
+    return frame_index
+
+# FRAME DATASET
+
+class VideoFrameSequence(Sequence):
+    def __init__(
+        self,
+        frame_index,
+        batch_size,
+        shuffle=True
+    ):
+        self.frame_index = frame_index
+        self.batch_size = batch_size
+        self.shuffle = shuffle
+        self.indexes = np.arange(
+            len(self.frame_index)
+        )
+        self.on_epoch_end()
+
+    def __len__(self):
+        return int(
+            np.ceil(
+                len(self.frame_index)
+                / self.batch_size
+            )
+        )
+
+    def __getitem__(self, index):
+        batch_indexes = self.indexes[
+            index * self.batch_size:
+            (index + 1) * self.batch_size
+        ]
+        batch_frames = []
+        batch_labels = []
+
+        for frame_index in batch_indexes:
+            video_path, position, label = (
+                self.frame_index[frame_index]
+            )
+            capture = cv2.VideoCapture(
+                str(video_path)
+            )
+            capture.set(
+                cv2.CAP_PROP_POS_FRAMES,
+                position
+            )
             success, frame = capture.read()
-            if not success:
-                break
-            frame_number += 1
+            capture.release()
 
-            # Only use every FRAME_INTERVAL frame
-            
-            if frame_number % FRAME_INTERVAL != 0:
+            if not success:
                 continue
 
             # Resize
@@ -96,38 +160,29 @@ def frame_generator(videos, label):
             )
 
             # Normalize
-            frame = frame.astype(np.float32) / 255.0
-            yield frame, label
-
-        capture.release()
-
-
-# BATCH GENERATOR
-
-def batch_generator(videos, label):
-    frames = []
-    labels = []
-    for frame, frame_label in frame_generator(videos, label):
-        frames.append(frame)
-        labels.append(frame_label)
-        if len(frames) == BATCH_SIZE:
-            yield (
-                np.array(frames, dtype=np.float32),
-                np.array(labels, dtype=np.float32)
+            frame = frame.astype(
+                np.float32
+            ) / 255.0
+            batch_frames.append(frame)
+            batch_labels.append(label)
+        return (
+            np.array(
+                batch_frames,
+                dtype=np.float32
+            ),
+            np.array(
+                batch_labels,
+                dtype=np.float32
             )
-            # IMPORTANT:
-            # Clear the batch after sending it to the model.
-            frames = []
-            labels = []
-
-    # Handle remaining frames
-    if frames:
-        yield (
-            np.array(frames, dtype=np.float32),
-            np.array(labels, dtype=np.float32)
         )
 
-# CREATE CNN MODEL
+    def on_epoch_end(self):
+        if self.shuffle:
+            np.random.shuffle(
+                self.indexes
+            )
+
+# CNN MODEL
 
 def create_model():
     model = Sequential([
@@ -135,27 +190,39 @@ def create_model():
             32,
             (3, 3),
             activation="relu",
-            input_shape=(IMG_SIZE, IMG_SIZE, 3)
+            input_shape=(
+                IMG_SIZE,
+                IMG_SIZE,
+                3
+            )
         ),
-        MaxPooling2D((2, 2)),
+        MaxPooling2D(
+            (2, 2)
+        ),
         Conv2D(
             64,
             (3, 3),
             activation="relu"
         ),
-        MaxPooling2D((2, 2)),
+        MaxPooling2D(
+            (2, 2)
+        ),
         Conv2D(
             128,
             (3, 3),
             activation="relu"
         ),
-        MaxPooling2D((2, 2)),
+        MaxPooling2D(
+            (2, 2)
+        ),
         Flatten(),
         Dense(
             128,
             activation="relu"
         ),
-        Dropout(0.5),
+        Dropout(
+            0.5
+        ),
         Dense(
             1,
             activation="sigmoid"
@@ -169,98 +236,149 @@ def create_model():
     )
     return model
 
-
 # MAIN
 
 def main():
-    print("\nSearching for videos...\n")
-    real_videos = get_video_files(REAL_DIR)
-    fake_videos = get_video_files(FAKE_DIR)
-    print(f"Real videos : {len(real_videos)}")
-    print(f"Fake videos : {len(fake_videos)}")
+    random.seed(RANDOM_SEED)
+    np.random.seed(RANDOM_SEED)
+    tf.random.set_seed(RANDOM_SEED)
+
+    # Find videos
+
+    print("\nSearching dataset...\n")
+    real_videos = get_video_files(
+        REAL_DIR
+    )
+    fake_videos = get_video_files(
+        FAKE_DIR
+    )
+    print(
+        f"Original videos : {len(real_videos)}"
+    )
+    print(
+        f"Deepfake videos : {len(fake_videos)}"
+    )
     if not real_videos:
         raise RuntimeError(
-            f"No videos found in: {REAL_DIR}"
+            f"No videos found in {REAL_DIR}"
         )
     if not fake_videos:
         raise RuntimeError(
-            f"No videos found in: {FAKE_DIR}"
+            f"No videos found in {FAKE_DIR}"
         )
 
-    # Split at VIDEO level
+    # Video-level split
 
-    real_train, real_val = split_videos(real_videos)
-    fake_train, fake_val = split_videos(fake_videos)
-    print("\nDataset split:")
-    print(f"Real training      : {len(real_train)}")
-    print(f"Real validation    : {len(real_val)}")
-    print(f"Deepfakes training : {len(fake_train)}")
-    print(f"Deepfakes validation: {len(fake_val)}")
+    real_train, real_validation = (
+        split_videos(real_videos)
+    )
+    fake_train, fake_validation = (
+        split_videos(fake_videos)
+    )
+    print("\nVideo-level split:")
+    print(
+        f"Original training   : {len(real_train)}"
+    )
+    print(
+        f"Original validation : {len(real_validation)}"
+    )
+    print(
+        f"Deepfake training   : {len(fake_train)}"
+    )
+    print(
+        f"Deepfake validation : {len(fake_validation)}"
+    )
 
-    # Create model
+    # Create labeled video lists
+
+    training_videos = []
+    validation_videos = []
+    for video in real_train:
+        training_videos.append(
+            (video, 0)
+        )
+    for video in fake_train:
+        training_videos.append(
+            (video, 1)
+        )
+    for video in real_validation:
+        validation_videos.append(
+            (video, 0)
+        )
+    for video in fake_validation:
+        validation_videos.append(
+            (video, 1)
+        )
+    random.shuffle(training_videos)
+    random.shuffle(validation_videos)
+
+    # Build frame indexes
+
+    print("\nBuilding frame indexes...")
+    print(
+        "This stores only video paths and frame numbers."
+    )
+    print(
+        "Actual frames are NOT stored on disk."
+    )
+    training_index = create_frame_index(
+        training_videos
+    )
+    validation_index = create_frame_index(
+        validation_videos
+    )
+    print(
+        f"\nTraining frames: "
+        f"{len(training_index)}"
+    )
+    print(
+        f"Validation frames: "
+        f"{len(validation_index)}"
+    )
+
+    # Create generators
+
+    training_data = VideoFrameSequence(
+        training_index,
+        BATCH_SIZE,
+        shuffle=True
+    )
+
+    validation_data = VideoFrameSequence(
+        validation_index,
+        BATCH_SIZE,
+        shuffle=False
+    )
+
+    # Create CNN
 
     model = create_model()
     model.summary()
 
-    # Training
+    # Train
 
     print("\nStarting training...\n")
-    for epoch in range(EPOCHS):
-        print(
-            f"\n========== Epoch "
-            f"{epoch + 1}/{EPOCHS} ==========\n"
-        )
 
-        # Combine real + fake videos
-        training_items = []
+    model.fit(
+        training_data,
+        validation_data=validation_data,
+        epochs=EPOCHS
+    )
 
-        for video in real_train:
-            training_items.append((video, 0))
+    # Save
 
-        for video in fake_train:
-            training_items.append((video, 1))
+    model.save(
+        MODEL_PATH
+    )
 
-        random.shuffle(training_items)
-
-        total_loss = 0
-        total_accuracy = 0
-        batch_count = 0
-
-        for video_path, label in training_items:
-            for frames, labels in batch_generator(
-                [video_path],
-                label
-            ):
-                loss, accuracy = model.train_on_batch(
-                    frames,
-                    labels
-                )
-                total_loss += float(loss)
-                total_accuracy += float(accuracy)
-                batch_count += 1
-                if batch_count % 10 == 0:
-                    print(
-                        f"Batches: {batch_count} | "
-                        f"Loss: {loss:.4f} | "
-                        f"Accuracy: {accuracy:.4f}"
-                    )
-        if batch_count > 0:
-            print(
-                f"\nEpoch result:"
-                f"\nLoss: "
-                f"{total_loss / batch_count:.4f}"
-                f"\nAccuracy: "
-                f"{total_accuracy / batch_count:.4f}"
-            )
-
-    # Save model
-
-    model.save(MODEL_PATH)
-    print("\n================================")
+    print("\n===================================")
     print("Training completed!")
-    print(f"Model saved at:")
-    print(MODEL_PATH)
-    print("================================")
+    print(
+        f"Model saved to:\n{MODEL_PATH}"
+    )
+    print("===================================")
+
+# ENTRY POINT
 
 if __name__ == "__main__":
     main()
