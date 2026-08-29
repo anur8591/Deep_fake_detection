@@ -28,12 +28,12 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DATASET_DIR = PROJECT_ROOT / "FaceForensics++_C23"
 
 REAL_DIR = DATASET_DIR / "original"
-FAKE_DIR = DATASET_DIR / "DeepFakeDetection"
+FAKE_DIR = DATASET_DIR / "Face2Face"
 
 MODEL_DIR = PROJECT_ROOT / "backend" / "trained_models"
 MODEL_DIR.mkdir(parents=True, exist_ok=True)
 
-MODEL_PATH = MODEL_DIR / "deepfakedetection.keras"
+MODEL_PATH = MODEL_DIR / "face2face.keras"
 
 
 # ============================================================
@@ -312,7 +312,7 @@ def main():
     fake_videos = get_video_files(FAKE_DIR)
 
     print(f"Original videos: {len(real_videos)}")
-    print(f"DeepFakeDetection videos: {len(fake_videos)}")
+    print(f"Face2Face videos: {len(fake_videos)}")
 
 
     # --------------------------------------------------------
@@ -333,8 +333,8 @@ def main():
     print(f"Original training: {len(real_train)}")
     print(f"Original validation: {len(real_validation)}")
 
-    print(f"DeepFakeDetection training: {len(fake_train)}")
-    print(f"DeepFakeDetection validation: {len(fake_validation)}")
+    print(f"Face2Face training: {len(fake_train)}")
+    print(f"Face2Face validation: {len(fake_validation)}")
 
 
     # --------------------------------------------------------
