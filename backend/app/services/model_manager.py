@@ -1,21 +1,34 @@
 from pathlib import Path
 from tensorflow.keras.models import load_model
-from app.models.model_config import MODEL_PATHS
+
 
 class ModelManager:
     def __init__(self):
-        self.models = {}
-
-    def load_models(self):
-        for name, path in MODEL_PATHS.item():
-            if not path(path).exists():
-                print(f"Model not found: {path}")
-                continue
-            self.models[name] = load_model(path)
-            print(f"Loaded model: {name}")
+        # Find backend folder
+        backend_dir = Path(__file__).resolve().parents[2]
+        # trained_models folder
+        self.model_dir = backend_dir / "trained_models"
+        # Load all models
+        self.models = {
+            "deepfakes": load_model(
+                self.model_dir / "deepfakes.keras"
+            ),
+            "face2face": load_model(
+                self.model_dir / "face2face.keras"
+            ),
+            "faceshifter": load_model(
+                self.model_dir / "faceshifter.keras"
+            ),
+            "faceswap": load_model(
+                self.model_dir / "faceswap.keras"
+            ),
+            "neuraltextures": load_model(
+                self.model_dir / "neuraltextures.keras"
+            ),
+            "deepfake_detection": load_model(
+                self.model_dir / "deepfake_detection.keras"
+            )
+        }
 
     def get_model(self, name):
-        return self.models.get(name)
-
-    def get_all_models(self):
-        return self.models
+        return self.models[name]

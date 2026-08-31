@@ -1,23 +1,20 @@
 import numpy as np
 
 
-def predict_frame(frame, models):
-    """
-    Run one preprocessed frame through all available models.
-
-    Parameters:
-        frame  : preprocessed frame, shape (1, 224, 224, 3)
-        models : dictionary of loaded models
-
-    Returns:
-        Dictionary containing each model's fake score.
-    """
-
-    predictions = {}
-
-    for name, model in models.items():
-        output = model.predict(frame, verbose=0)
-        fake_score = float(output[0][0])
-        predictions[name] = fake_score
-
-    return predictions
+class Predictor:
+    def __init__(self, model_manager):
+        self.model_manager = model_manager
+    def predict_frame(self, frame):
+        predictions = {}
+        for name, model in self.model_manager.models.items():
+            # Add batch dimension
+            input_frame = np.expand_dims(frame, axis=0)
+            # Get model prediction
+            prediction = model.predict(
+                input_frame,
+                verbose=0
+            )
+            # Sigmoid output
+            fake_probability = float(prediction[0][0])
+            predictions[name] = fake_probability
+        return predictions
