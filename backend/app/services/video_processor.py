@@ -1,23 +1,22 @@
 import cv2
-def read_video_frames(video_path):
-    """
-        Read a video frame by frame.
-        frame are kept temporarily in memory
-    """
-    video = cv2.VideoCapture(video_path)
 
-    if not video.isOpened():
-        raise ValueError("Could not open video")
+
+def extract_frames(video_path, frame_interval=5):
+
+    video = cv2.VideoCapture(str(video_path))
+
     frame_count = 0
 
     while True:
+
         success, frame = video.read()
 
         if not success:
             break
 
-        frame_count += 1
+        if frame_count % frame_interval == 0:
+            yield frame
 
-        yield frame
+        frame_count += 1
 
     video.release()

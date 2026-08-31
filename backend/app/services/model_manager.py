@@ -23,10 +23,10 @@ class ModelManager:
                 self.model_dir / "faceswap.keras"
             ),
             "neuraltextures": load_model(
-                self.model_dir / "neuraltextures.keras"
+                self.model_dir / "NeuralTextures.keras"
             ),
             "deepfake_detection": load_model(
-                self.model_dir / "deepfake_detection.keras"
+                self.model_dir / "deepfakedetection.keras"
             )
         }
 
