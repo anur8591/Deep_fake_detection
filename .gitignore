@@ -1,6 +1,6 @@
 venv
 frames
-backend/Trained_model/*.keras
+backend/Trained_models/*.keras
 FaceForensics++_C23/
 backend/Uploads/
 backend/results/
