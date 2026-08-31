@@ -16,87 +16,237 @@ import aboutImage from "./assets/deepguard-about.png";
 
 import "./App.css";
 
+
 function App() {
+
+  // ================= STATE =================
+
   const [showResult, setShowResult] = useState(false);
 
-  const handleAnalyze = () => {
-    setShowResult(true);
+  const [result, setResult] = useState(null);
+
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  const [error, setError] = useState("");
+
+
+  // ================= ANALYZE VIDEO =================
+
+  const handleAnalyze = async (video) => {
+
+    if (!video) {
+      return;
+    }
+
+    // Start loading state
+    setIsAnalyzing(true);
+
+    // Hide previous result
+    setShowResult(false);
+
+    setResult(null);
+
+    setError("");
+
+
+    // Create form data
+    const formData = new FormData();
+
+    formData.append("file", video);
+
+
+    try {
+
+      // Send video to FastAPI
+      const response = await fetch(
+        "http://127.0.0.1:8000/analyze",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+
+      // Check response
+      if (!response.ok) {
+
+        throw new Error(
+          "Video analysis failed."
+        );
+
+      }
+
+
+      // Convert response to JSON
+      const data = await response.json();
+
+
+      console.log(
+        "Backend result:",
+        data
+      );
+
+
+      // Store backend result
+      setResult(data);
+
+      // Show result card
+      setShowResult(true);
+
+    } catch (error) {
+
+      console.error(
+        "Analysis error:",
+        error
+      );
+
+
+      setError(
+        "Unable to analyze the video. Please make sure the backend is running."
+      );
+
+    } finally {
+
+      // Stop loading
+      setIsAnalyzing(false);
+
+    }
   };
+
+
+  // ================= RESET =================
 
   const handleReset = () => {
+
     setShowResult(false);
+
+    setResult(null);
+
+    setError("");
+
+    setIsAnalyzing(false);
+
   };
 
+
   return (
+
     <div className="app">
 
       <Navbar />
 
       <main>
 
+
         {/* ================= HERO ================= */}
 
-        <section className="hero-section" id="dashboard">
+        <section
+          className="hero-section"
+          id="dashboard"
+        >
 
           <div className="hero-content">
 
             <div className="hero-badge">
+
               <span className="live-dot"></span>
+
               AI-POWERED DEEPFAKE DETECTION
+
             </div>
 
+
             <h1>
+
               Detect <span>Deepfakes.</span>
+
               <br />
+
               Trust <strong>Reality.</strong>
+
             </h1>
 
+
             <p>
+
               Upload a video and our AI model will analyze it
               frame-by-frame to detect manipulated content
               with confidence.
+
             </p>
+
 
             <div className="hero-features">
 
+
               <div className="hero-feature">
 
                 <div className="feature-icon">
+
                   <BrainCircuit size={19} />
+
                 </div>
 
                 <div>
-                  <strong>AI-Powered</strong>
-                  <span>Deep Learning</span>
+
+                  <strong>
+                    AI-Powered
+                  </strong>
+
+                  <span>
+                    Deep Learning
+                  </span>
+
                 </div>
 
               </div>
 
+
               <div className="hero-feature">
 
                 <div className="feature-icon">
+
                   <Video size={19} />
+
                 </div>
 
                 <div>
-                  <strong>Frame Analysis</strong>
-                  <span>Smart Processing</span>
+
+                  <strong>
+                    Frame Analysis
+                  </strong>
+
+                  <span>
+                    Smart Processing
+                  </span>
+
                 </div>
 
               </div>
+
 
               <div className="hero-feature">
 
                 <div className="feature-icon">
+
                   <Target size={19} />
+
                 </div>
 
                 <div>
-                  <strong>High Accuracy</strong>
-                  <span>Reliable Results</span>
+
+                  <strong>
+                    High Accuracy
+                  </strong>
+
+                  <span>
+                    Reliable Results
+                  </span>
+
                 </div>
 
               </div>
+
 
             </div>
 
@@ -111,8 +261,11 @@ function App() {
             />
 
             <div className="hero-status">
+
               <span>⚠</span>
+
               DEEPFAKE DETECTED
+
             </div>
 
           </div>
@@ -120,11 +273,13 @@ function App() {
         </section>
 
 
+
         {/* ================= ANALYSIS ================= */}
 
         <section className="analysis-layout">
 
-          {/* UPLOAD */}
+
+          {/* ================= UPLOAD ================= */}
 
           <div className="analysis-card upload-card">
 
@@ -133,22 +288,43 @@ function App() {
               <span>01</span>
 
               <div>
-                <h2>Upload Video</h2>
-                <p>Select a video for analysis</p>
+
+                <h2>
+                  Upload Video
+                </h2>
+
+                <p>
+                  Select a video for analysis
+                </p>
+
               </div>
 
             </div>
 
+
             <VideoUploader
+
               onAnalyze={handleAnalyze}
-              onVideoSelected={() => setShowResult(false)}
+
+              onVideoSelected={() => {
+
+                setShowResult(false);
+
+                setResult(null);
+
+                setError("");
+
+              }}
+
               onReset={handleReset}
+
             />
 
           </div>
 
 
-          {/* RESULT */}
+
+          {/* ================= RESULT ================= */}
 
           <div className="analysis-card result-wrapper">
 
@@ -157,37 +333,141 @@ function App() {
               <span>02</span>
 
               <div>
-                <h2>Analysis Result</h2>
-                <p>AI detection summary</p>
+
+                <h2>
+                  Analysis Result
+                </h2>
+
+                <p>
+                  AI detection summary
+                </p>
+
               </div>
 
             </div>
 
-            {showResult ? (
 
-              <ResultCard />
 
-            ) : (
+            {/* ANALYZING */}
+
+            {isAnalyzing ? (
 
               <div className="empty-result">
 
                 <div className="empty-icon">
-                  <Shield size={30} />
+
+                  <Zap size={30} />
+
                 </div>
 
-                <h3>Ready for Analysis</h3>
+
+                <h3>
+                  Analyzing Video...
+                </h3>
+
 
                 <p>
-                  Upload a video and click{" "}
-                  <strong>Analyze Video</strong> to see
-                  the detection result.
+
+                  DeepGuard is extracting frames
+                  and analyzing them with the
+                  CNN models.
+
                 </p>
 
+
                 <div className="empty-placeholder">
-                  <span>REAL / FAKE</span>
+
+                  <span>
+                    PROCESSING
+                  </span>
+
+                  <small>
+                    Please wait...
+                  </small>
+
+                </div>
+
+              </div>
+
+
+            ) : error ? (
+
+
+              /* ================= ERROR ================= */
+
+              <div className="empty-result">
+
+                <div className="empty-icon">
+
+                  <Shield size={30} />
+
+                </div>
+
+
+                <h3>
+                  Analysis Failed
+                </h3>
+
+
+                <p>
+                  {error}
+                </p>
+
+              </div>
+
+
+            ) : showResult ? (
+
+
+              /* ================= RESULT ================= */
+
+              <ResultCard
+                result={result}
+              />
+
+
+            ) : (
+
+
+              /* ================= EMPTY ================= */
+
+              <div className="empty-result">
+
+                <div className="empty-icon">
+
+                  <Shield size={30} />
+
+                </div>
+
+
+                <h3>
+                  Ready for Analysis
+                </h3>
+
+
+                <p>
+
+                  Upload a video and click{" "}
+
+                  <strong>
+                    Analyze Video
+                  </strong>
+
+                  {" "}to see the detection result.
+
+                </p>
+
+
+                <div className="empty-placeholder">
+
+                  <span>
+                    REAL / FAKE
+                  </span>
+
                   <small>
                     Waiting for video analysis
                   </small>
+
                 </div>
 
               </div>
@@ -197,6 +477,7 @@ function App() {
           </div>
 
         </section>
+
 
 
         {/* ================= PIPELINE ================= */}
@@ -210,16 +491,21 @@ function App() {
 
             <div className="section-line"></div>
 
-            <h2>Detection Pipeline</h2>
+            <h2>
+              Detection Pipeline
+            </h2>
 
             <div className="section-line"></div>
 
-            <p>How our system works</p>
+            <p>
+              How our system works
+            </p>
 
           </div>
 
 
           <div className="pipeline">
+
 
             <PipelineStep
               number="01"
@@ -228,9 +514,11 @@ function App() {
               description="Upload video"
             />
 
+
             <div className="pipeline-arrow">
               →
             </div>
+
 
             <PipelineStep
               number="02"
@@ -239,9 +527,11 @@ function App() {
               description="Video converted into frames"
             />
 
+
             <div className="pipeline-arrow">
               →
             </div>
+
 
             <PipelineStep
               number="03"
@@ -250,9 +540,11 @@ function App() {
               description="Resize and normalize"
             />
 
+
             <div className="pipeline-arrow">
               →
             </div>
+
 
             <PipelineStep
               number="04"
@@ -261,9 +553,11 @@ function App() {
               description="Deep learning analysis"
             />
 
+
             <div className="pipeline-arrow">
               →
             </div>
+
 
             <PipelineStep
               number="05"
@@ -275,6 +569,7 @@ function App() {
           </div>
 
         </section>
+
 
 
         {/* ================= ABOUT ================= */}
@@ -301,26 +596,35 @@ function App() {
               <Shield size={25} />
 
               <h2>
+
                 About <span>DeepGuard</span>
+
               </h2>
 
             </div>
 
+
             <p>
+
               DeepGuard is an AI-powered deepfake detection
               system designed to identify manipulated video
               content using deep learning.
+
             </p>
 
+
             <p>
+
               The system analyzes video frames individually
               and uses a Convolutional Neural Network (CNN)
               to determine whether the content is real or
               artificially manipulated.
+
             </p>
 
 
             <div className="about-features">
+
 
               <AboutFeature
                 icon={<Target size={20} />}
@@ -328,11 +632,13 @@ function App() {
                 description="Deep learning model"
               />
 
+
               <AboutFeature
                 icon={<Zap size={20} />}
                 title="Fast Processing"
                 description="Frame-by-frame analysis"
               />
+
 
               <AboutFeature
                 icon={<Shield size={20} />}
@@ -347,18 +653,26 @@ function App() {
         </section>
 
 
+
         {/* ================= FOOTER ================= */}
 
         <footer>
 
           <div className="footer-brand">
+
             <Shield size={20} />
-            <span>DeepGuard</span>
+
+            <span>
+              DeepGuard
+            </span>
+
           </div>
+
 
           <p>
             AI-powered Deepfake Detection System
           </p>
+
 
           <a
             href="#"
@@ -369,11 +683,14 @@ function App() {
 
         </footer>
 
+
       </main>
 
     </div>
+
   );
 }
+
 
 
 /* ================= PIPELINE COMPONENT ================= */
@@ -384,24 +701,40 @@ function PipelineStep({
   title,
   description,
 }) {
+
   return (
+
     <div className="pipeline-step">
 
       <div className="pipeline-icon">
+
         {icon}
+
       </div>
 
+
       <span className="pipeline-number">
+
         {number}
+
       </span>
 
-      <h3>{title}</h3>
 
-      <p>{description}</p>
+      <h3>
+        {title}
+      </h3>
+
+
+      <p>
+        {description}
+      </p>
 
     </div>
+
   );
+
 }
+
 
 
 /* ================= ABOUT COMPONENT ================= */
@@ -411,20 +744,35 @@ function AboutFeature({
   title,
   description,
 }) {
+
   return (
+
     <div className="about-feature">
 
       <div className="about-feature-icon">
+
         {icon}
+
       </div>
 
+
       <div>
-        <strong>{title}</strong>
-        <span>{description}</span>
+
+        <strong>
+          {title}
+        </strong>
+
+        <span>
+          {description}
+        </span>
+
       </div>
 
     </div>
+
   );
+
 }
+
 
 export default App;
