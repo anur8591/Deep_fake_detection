@@ -28,12 +28,12 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DATASET_DIR = PROJECT_ROOT / "FaceForensics++_C23"
 
 REAL_DIR = DATASET_DIR / "original"
-FAKE_DIR = DATASET_DIR / "NeuralTextures"
+FAKE_DIR = DATASET_DIR / "FaceSwap"
 
 MODEL_DIR = PROJECT_ROOT / "backend" / "trained_models"
 MODEL_DIR.mkdir(parents=True, exist_ok=True)
 
-MODEL_PATH = MODEL_DIR / "NeuralTextures.keras"
+MODEL_PATH = MODEL_DIR / "faceswap.keras"
 
 
 # ============================================================
@@ -312,7 +312,7 @@ def main():
     fake_videos = get_video_files(FAKE_DIR)
 
     print(f"Original videos: {len(real_videos)}")
-    print(f"NeuralTextures videos: {len(fake_videos)}")
+    print(f"FaceSwap videos: {len(fake_videos)}")
 
 
     # --------------------------------------------------------
@@ -333,8 +333,8 @@ def main():
     print(f"Original training: {len(real_train)}")
     print(f"Original validation: {len(real_validation)}")
 
-    print(f"NeuralTextures training: {len(fake_train)}")
-    print(f"NeuralTextures validation: {len(fake_validation)}")
+    print(f"FaceSwap training: {len(fake_train)}")
+    print(f"FaceSwap validation: {len(fake_validation)}")
 
 
     # --------------------------------------------------------
