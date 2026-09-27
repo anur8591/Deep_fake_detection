@@ -82,7 +82,7 @@ class Predictor:
 
 
         # 0.8 = decision threshold
-        if best_score >= 0.9:
+        if best_score >= 0.8:
 
             result = "FAKE"
 

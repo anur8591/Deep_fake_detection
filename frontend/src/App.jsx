@@ -22,11 +22,8 @@ function App() {
   // ================= STATE =================
 
   const [showResult, setShowResult] = useState(false);
-
   const [result, setResult] = useState(null);
-
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-
   const [error, setError] = useState("");
 
 
@@ -38,22 +35,14 @@ function App() {
       return;
     }
 
-    // Start loading state
     setIsAnalyzing(true);
-
-    // Hide previous result
     setShowResult(false);
-
     setResult(null);
-
     setError("");
 
-
-    // Create form data
     const formData = new FormData();
 
     formData.append("file", video);
-
 
     try {
 
@@ -66,48 +55,41 @@ function App() {
         }
       );
 
-
-      // Check response
       if (!response.ok) {
 
-        throw new Error(
-          "Video analysis failed."
-        );
+        let message = "Video analysis failed.";
 
+        try {
+          const errorData = await response.json();
+
+          if (errorData.detail) {
+            message = errorData.detail;
+          }
+        } catch {
+          // Keep default error message
+        }
+
+        throw new Error(message);
       }
 
-
-      // Convert response to JSON
       const data = await response.json();
 
+      console.log("Backend result:", data);
 
-      console.log(
-        "Backend result:",
-        data
-      );
-
-
-      // Store backend result
       setResult(data);
-
-      // Show result card
       setShowResult(true);
 
     } catch (error) {
 
-      console.error(
-        "Analysis error:",
-        error
-      );
-
+      console.error("Analysis error:", error);
 
       setError(
+        error.message ||
         "Unable to analyze the video. Please make sure the backend is running."
       );
 
     } finally {
 
-      // Stop loading
       setIsAnalyzing(false);
 
     }
@@ -119,11 +101,8 @@ function App() {
   const handleReset = () => {
 
     setShowResult(false);
-
     setResult(null);
-
     setError("");
-
     setIsAnalyzing(false);
 
   };
@@ -136,7 +115,6 @@ function App() {
       <Navbar />
 
       <main>
-
 
         {/* ================= HERO ================= */}
 
@@ -177,7 +155,6 @@ function App() {
 
 
             <div className="hero-features">
-
 
               <div className="hero-feature">
 
@@ -247,7 +224,6 @@ function App() {
 
               </div>
 
-
             </div>
 
           </div>
@@ -271,7 +247,6 @@ function App() {
           </div>
 
         </section>
-
 
 
         {/* ================= ANALYSIS ================= */}
@@ -309,9 +284,7 @@ function App() {
               onVideoSelected={() => {
 
                 setShowResult(false);
-
                 setResult(null);
-
                 setError("");
 
               }}
@@ -321,7 +294,6 @@ function App() {
             />
 
           </div>
-
 
 
           {/* ================= RESULT ================= */}
@@ -347,8 +319,7 @@ function App() {
             </div>
 
 
-
-            {/* ANALYZING */}
+            {/* ================= ANALYZING ================= */}
 
             {isAnalyzing ? (
 
@@ -370,7 +341,7 @@ function App() {
 
                   DeepGuard is extracting frames
                   and analyzing them with the
-                  CNN models.
+                  CNN and AI models.
 
                 </p>
 
@@ -416,7 +387,7 @@ function App() {
               </div>
 
 
-            ) : showResult ? (
+            ) : showResult && result ? (
 
 
               /* ================= RESULT ================= */
@@ -479,7 +450,6 @@ function App() {
         </section>
 
 
-
         {/* ================= PIPELINE ================= */}
 
         <section
@@ -506,14 +476,12 @@ function App() {
 
           <div className="pipeline">
 
-
             <PipelineStep
               number="01"
               icon={<Video size={21} />}
               title="Input Video"
               description="Upload video"
             />
-
 
             <div className="pipeline-arrow">
               →
@@ -527,7 +495,6 @@ function App() {
               description="Video converted into frames"
             />
 
-
             <div className="pipeline-arrow">
               →
             </div>
@@ -540,7 +507,6 @@ function App() {
               description="Resize and normalize"
             />
 
-
             <div className="pipeline-arrow">
               →
             </div>
@@ -552,7 +518,6 @@ function App() {
               title="CNN Model"
               description="Deep learning analysis"
             />
-
 
             <div className="pipeline-arrow">
               →
@@ -569,7 +534,6 @@ function App() {
           </div>
 
         </section>
-
 
 
         {/* ================= ABOUT ================= */}
@@ -596,9 +560,7 @@ function App() {
               <Shield size={25} />
 
               <h2>
-
                 About <span>DeepGuard</span>
-
               </h2>
 
             </div>
@@ -625,7 +587,6 @@ function App() {
 
             <div className="about-features">
 
-
               <AboutFeature
                 icon={<Target size={20} />}
                 title="High Accuracy"
@@ -651,7 +612,6 @@ function App() {
           </div>
 
         </section>
-
 
 
         {/* ================= FOOTER ================= */}
@@ -683,14 +643,12 @@ function App() {
 
         </footer>
 
-
       </main>
 
     </div>
 
   );
 }
-
 
 
 /* ================= PIPELINE COMPONENT ================= */
@@ -707,23 +665,16 @@ function PipelineStep({
     <div className="pipeline-step">
 
       <div className="pipeline-icon">
-
         {icon}
-
       </div>
 
-
       <span className="pipeline-number">
-
         {number}
-
       </span>
-
 
       <h3>
         {title}
       </h3>
-
 
       <p>
         {description}
@@ -732,9 +683,7 @@ function PipelineStep({
     </div>
 
   );
-
 }
-
 
 
 /* ================= ABOUT COMPONENT ================= */
@@ -750,11 +699,8 @@ function AboutFeature({
     <div className="about-feature">
 
       <div className="about-feature-icon">
-
         {icon}
-
       </div>
-
 
       <div>
 
@@ -771,7 +717,6 @@ function AboutFeature({
     </div>
 
   );
-
 }
 
 

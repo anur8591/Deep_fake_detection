@@ -459,7 +459,7 @@ def main():
 
         validation_steps=validation_steps,
 
-        epochs=EPOCHS,
+        epochs=EPOCHS, 
 
         callbacks=[
             early_stopping,
