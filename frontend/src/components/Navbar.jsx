@@ -1,52 +1,30 @@
-import { Shield } from "lucide-react";
-
-function Navbar() {
+export default function Navbar({ onLoginClick }) {
   return (
     <nav className="navbar">
-
-      <a
-        href="#dashboard"
-        className="navbar-brand"
-      >
-
-        <div className="brand-icon">
-          <Shield size={23} />
-        </div>
-
-        <div>
-          <strong>DeepGuard</strong>
-          <span>Deepfake Detection</span>
-        </div>
-
-      </a>
-
-
-      <div className="navbar-links">
-
-        <a href="#dashboard">
-          Dashboard
-        </a>
-
-        <a href="#how-it-works">
-          How It Works
-        </a>
-
-        <a href="#about">
-          About
-        </a>
-
+      <div className="nav-left">
+        <div className="logo" aria-hidden="true">DG</div>
+        <span className="site-name">DeepGuard</span>
       </div>
 
+      <ul className="nav-right">
+        <li><a href="#home">Home</a></li>
 
-      <a
-        href="#"
-        className="github-button"
-      >
-        GitHub
-      </a>
+        <li className="dropdown">
+          <a href="#tools">Tools</a>
+          <ul className="dropdown-menu">
+            <li><a href="#tools">Video Detection</a></li>
+          </ul>
+        </li>
 
+        <li><a href="#about">About</a></li>
+        <li><a href="#contact">Contact</a></li>
+
+        <li>
+          <button className="nav-login-btn" onClick={onLoginClick}>
+            Login
+          </button>
+        </li>
+      </ul>
     </nav>
   );
 }
-
-export default Navbar;
